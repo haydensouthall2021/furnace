@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>The Furnace — supply only goes one way</title>
+<meta name="description" content="Every trade feeds the furnace. Tokens are bought on the open market and burned. Supply only goes down. Verify it yourself.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;700&family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0A0705;--ink:#120C08;--panel:#1A110B;--line:#2A1C12;--line2:#3A2818;
+  --fg:#FBF6F1;--mid:#A3907F;--dim:#6B584A;--fire:#FF7A18;--hot:#FFB627;--good:#3DDC97;--bad:#FF4D3D;
+  --mono:'JetBrains Mono',ui-monospace,monospace}
+*{box-sizing:border-box}html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:Inter,system-ui,sans-serif;
+  line-height:1.55;-webkit-font-smoothing:antialiased;font-variant-numeric:tabular-nums}
+body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
+  background:radial-gradient(900px 560px at 50% 105%, rgba(255,122,24,.20), transparent 64%)}
+.wrap{max-width:900px;margin:0 auto;padding:0 22px;position:relative;z-index:1}
+a{color:inherit;text-decoration:none}
+
+nav{position:sticky;top:0;z-index:30;backdrop-filter:blur(14px);
+  background:rgba(10,7,5,.84);border-bottom:1px solid var(--line)}
+.nav{max-width:900px;margin:0 auto;padding:13px 22px;display:flex;align-items:center;gap:16px}
+.brand{display:flex;align-items:center;gap:9px;font-weight:900;font-size:17px;letter-spacing:-.03em}
+.flame{width:16px;height:20px;background:linear-gradient(180deg,var(--hot),var(--fire));
+  border-radius:50% 50% 50% 50%/60% 60% 40% 40%;animation:fl 2.4s ease-in-out infinite}
+@keyframes fl{0%,100%{transform:scaleY(1) rotate(-2deg)}50%{transform:scaleY(1.12) rotate(2deg)}}
+.nav .sp{flex:1}
+.nav a.l{font-size:13.5px;color:var(--mid);font-weight:500}
+.nav a.l:hover{color:var(--fg)}
+.ca{font-family:var(--mono);font-size:11px;color:var(--hot);cursor:pointer;
+  border:1px solid var(--line2);padding:5px 10px;border-radius:6px}
+.ca:hover{border-color:var(--hot)}
+
+header{padding:64px 0 36px;text-align:center}
+h1{margin:0 0 14px;font-size:clamp(38px,8vw,72px);line-height:.95;font-weight:900;letter-spacing:-.05em}
+h1 em{font-family:'Instrument Serif',serif;font-style:italic;font-weight:400;color:var(--fire);display:block}
+.lede{font-size:18px;color:var(--mid);max-width:52ch;margin:0 auto}
+.lede b{color:var(--fg);font-weight:600}
+
+.counter{margin:34px 0 8px;text-align:center}
+.clabel{font-family:var(--mono);font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--dim)}
+.cnum{font-family:var(--mono);font-size:clamp(34px,8vw,74px);font-weight:700;letter-spacing:-.04em;
+  line-height:1;margin:8px 0 6px}
+.cnum.tick{animation:tk .5s}
+@keyframes tk{0%{color:var(--fire);transform:scale(1.015)}100%{color:var(--fg);transform:scale(1)}}
+.csub{font-size:13.5px;color:var(--mid)}
+.csub b{color:var(--fire);font-weight:700}
+
+.bar{height:10px;background:var(--line);border-radius:6px;overflow:hidden;max-width:520px;margin:22px auto 0;
+  position:relative}
+.bar i{display:block;height:100%;background:linear-gradient(90deg,var(--fire),var(--hot));
+  transition:width .6s ease}
+.barl{display:flex;justify-content:space-between;max-width:520px;margin:7px auto 0;
+  font-family:var(--mono);font-size:10.5px;color:var(--dim)}
+
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:1px;
+  background:var(--line);border:1px solid var(--line);border-radius:14px;overflow:hidden;margin-top:34px}
+.s{background:var(--ink);padding:18px 16px;text-align:center}
+.s b{display:block;font-family:var(--mono);font-size:20px;font-weight:700;letter-spacing:-.02em}
+.s b.f{color:var(--fire)}.s b.g{color:var(--good)}
+.s s{font-size:10px;color:var(--dim);text-decoration:none;letter-spacing:.06em;text-transform:uppercase}
+
+section{padding:42px 0}
+.eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.17em;text-transform:uppercase;
+  color:var(--dim);margin:0 0 6px;text-align:center}
+h2{margin:0 0 10px;font-size:clamp(24px,3.6vw,33px);font-weight:800;letter-spacing:-.035em;text-align:center}
+h2 em{font-family:'Instrument Serif',serif;font-style:italic;font-weight:400;color:var(--fire)}
+.sub{color:var(--mid);max-width:56ch;margin:0 auto 26px;font-size:15px;text-align:center}
+
+.box{background:var(--ink);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.box h3{margin:0;padding:11px 16px;font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--dim);border-bottom:1px solid var(--line);font-weight:700;
+  display:flex;align-items:center;gap:8px}
+.live{width:6px;height:6px;border-radius:50%;background:var(--good);animation:p 1.7s infinite}
+@keyframes p{0%,100%{opacity:1}50%{opacity:.2}}
+.b{display:flex;gap:12px;align-items:baseline;padding:11px 16px;border-bottom:1px solid var(--line);font-size:13px}
+.b:last-child{border:none}
+.b.new{animation:flash 1.3s}
+@keyframes flash{from{background:rgba(255,122,24,.16)}to{background:transparent}}
+.b .amt{font-family:var(--mono);font-weight:700;color:var(--fire);white-space:nowrap}
+.b .w{flex:1;color:var(--mid)}
+.b a{font-family:var(--mono);font-size:10px;color:var(--dim)}
+.b a:hover{color:var(--hot)}
+
+.gr{display:grid;grid-template-columns:repeat(auto-fit,minmax(265px,1fr));gap:12px}
+.g{background:var(--ink);border:1px solid var(--line);border-radius:14px;padding:21px}
+.g h4{margin:0 0 8px;font-size:15.5px;font-weight:700;letter-spacing:-.02em;display:flex;gap:8px;align-items:center}
+.g h4 .t{color:var(--good)}
+.g p{margin:0;font-size:13.5px;color:var(--mid);line-height:1.62}
+.g code{font-family:var(--mono);font-size:12px;color:var(--hot)}
+
+footer{border-top:1px solid var(--line);margin-top:44px;padding:24px 0 66px;
+  font-size:12.5px;color:var(--dim);text-align:center}
+footer a{color:var(--hot)}
+@media(prefers-reduced-motion:reduce){*{animation:none!important}}
+</style>
+</head>
+<body>
+
+<nav><div class="nav">
+  <a href="#" class="brand"><span class="flame"></span>FURNACE</a>
+  <span class="sp"></span>
+  <a href="#how" class="l">How</a>
+  <a href="#verify" class="l">Verify</a>
+  <span class="ca" id="ca" title="click to copy">CA: coming at launch</span>
+</div></nav>
+
+<div class="wrap">
+
+<header>
+  <h1>Supply only goes<em>one way.</em></h1>
+  <p class="lede">Every trade pays a creator fee. That fee <b>buys this token on the open market and burns it</b> — on a loop, forever. No tax on your trade. Nothing added, nothing deducted. Just a number that falls.</p>
+
+  <div class="counter">
+    <div class="clabel">Total supply</div>
+    <div class="cnum" id="supply">—</div>
+    <div class="csub" id="burned">waiting for the chain…</div>
+  </div>
+  <div class="bar"><i id="bar" style="width:0%"></i></div>
+  <div class="barl"><span>burned</span><span id="pct">0.00%</span></div>
+
+  <div class="stats">
+    <div class="s"><b class="f" id="s-burned">—</b><s>tokens burned</s></div>
+    <div class="s"><b id="s-burns">—</b><s>burns</s></div>
+    <div class="s"><b class="g" id="s-sol">—</b><s>SOL spent buying</s></div>
+    <div class="s"><b id="s-mint">—</b><s>mint authority</s></div>
+  </div>
+</header>
+
+<section id="how">
+  <p class="eyebrow">How it works</p>
+  <h2>There is no tax. <em>There is a furnace.</em></h2>
+  <p class="sub">Most burn tokens take a cut of your trade. This one doesn't touch your trade at all.</p>
+  <div class="gr">
+    <div class="g"><h4><span class="t">✓</span>Your trade is untouched</h4>
+      <p>No transfer tax, no buy tax, no sell tax. You pay exactly what you'd pay on any other token. Nothing is deducted and no wallet is exempt — because there is nothing to be exempt from.</p></div>
+    <div class="g"><h4><span class="t">✓</span>The fuel is creator fees</h4>
+      <p>The launchpad already pays a creator fee on every trade. Instead of sitting in a wallet, it's swept out, spent buying this token on the open market, and the tokens are destroyed.</p></div>
+    <div class="g"><h4><span class="t">✓</span>Burned means burned</h4>
+      <p>A real <code>burn</code> instruction against the mint. Not sent to a dead address, not parked in a treasury. Removed from total supply, irreversibly.</p></div>
+    <div class="g"><h4><span class="t">✓</span>Volume makes it faster</h4>
+      <p>More trading means more fees means more buying and burning. The number above falls faster the busier it gets. That's the whole design.</p></div>
+  </div>
+</section>
+
+<section>
+  <div class="box">
+    <h3><span class="live"></span>Every burn, as it happens</h3>
+    <div id="feed"><div class="b"><span class="w">Waiting for the first burn…</span></div></div>
+  </div>
+</section>
+
+<section id="verify">
+  <p class="eyebrow">Verify</p>
+  <h2>Don't trust this page. <em>Check it.</em></h2>
+  <p class="sub">Every number here is read live from the chain on load. None of it is stored or stated by us.</p>
+  <div class="gr">
+    <div class="g"><h4>Total supply</h4>
+      <p>Open the mint on any explorer and read the supply field. It should match the number above, and it should be lower than it was yesterday. <a id="l-mint" target="_blank" rel="noopener" style="color:var(--hot)">view the mint →</a></p></div>
+    <div class="g"><h4>The burns</h4>
+      <p>Every burn in the feed links to its transaction. Open one and you'll see a burn instruction against the mint, with the amount.</p></div>
+    <div class="g"><h4>Mint authority</h4>
+      <p>Revoked at launch. No more can ever be created, so the supply figure can only fall. Check the authority field on the mint yourself.</p></div>
+    <div class="g"><h4>The furnace wallet</h4>
+      <p>The wallet that buys and burns is public. Its whole history is buys followed by burns, and nothing else. <a id="l-wallet" target="_blank" rel="noopener" style="color:var(--hot)">view the wallet →</a></p></div>
+  </div>
+</section>
+
+<footer>
+  <span id="f-links"></span><br>
+  Nothing here is financial advice or an offer of anything.
+</footer>
+
+</div>
+
+<script type="module">
+import { Connection, PublicKey, LAMPORTS_PER_SOL } from "https://esm.sh/@solana/web3.js@1.95.3";
+
+const CFG = await fetch("./config.json").then(r => r.json()).catch(() => ({}));
+const $ = id => document.getElementById(id);
+const fmt = n => n.toLocaleString(undefined, { maximumFractionDigits: 0 });
+const sa = a => a.slice(0, 4) + "…" + a.slice(-4);
+const sc = (k, v) => `https://solscan.io/${k}/${v}`;
+
+if (!CFG.mint) {
+  $("supply").textContent = "—";
+  $("burned").textContent = "Not launched yet. This page goes live with the token.";
+} else {
+  const conn = new Connection(CFG.rpc, "confirmed");
+  const MINT = new PublicKey(CFG.mint);
+  const WALLET = CFG.wallet ? new PublicKey(CFG.wallet) : null;
+
+  $("ca").textContent = "CA: " + sa(CFG.mint);
+  $("ca").onclick = () => navigator.clipboard?.writeText(CFG.mint);
+  $("l-mint").href = sc("token", CFG.mint);
+  if (WALLET) $("l-wallet").href = sc("account", CFG.wallet);
+  $("f-links").innerHTML =
+    `<a href="${sc("token", CFG.mint)}" target="_blank">mint</a> · ` +
+    (WALLET ? `<a href="${sc("account", CFG.wallet)}" target="_blank">furnace wallet</a> · ` : "") +
+    (CFG.repo ? `<a href="${CFG.repo}" target="_blank">code</a>` : "");
+
+  let start = null, last = null, burns = [];
+
+  async function poll() {
+    try {
+      const s = await conn.getTokenSupply(MINT);
+      const supply = Number(s.value.amount) / 10 ** s.value.decimals;
+      if (start === null) start = CFG.initialSupply || supply;
+
+      const el = $("supply");
+      el.textContent = fmt(supply);
+      if (last !== null && supply < last) { el.classList.remove("tick"); void el.offsetWidth; el.classList.add("tick"); }
+      last = supply;
+
+      const gone = Math.max(0, start - supply);
+      const pct = start > 0 ? gone / start * 100 : 0;
+      $("burned").innerHTML = `<b>${fmt(gone)}</b> destroyed since launch · ${pct.toFixed(3)}% of supply`;
+      $("bar").style.width = Math.min(100, pct) + "%";
+      $("pct").textContent = pct.toFixed(3) + "%";
+      $("s-burned").textContent = fmt(gone);
+
+      const mi = await conn.getParsedAccountInfo(MINT);
+      const auth = mi.value?.data?.parsed?.info?.mintAuthority ?? null;
+      $("s-mint").textContent = auth === null ? "revoked" : "LIVE";
+      $("s-mint").className = auth === null ? "g" : "";
+    } catch (e) { /* keep the last good numbers on screen */ }
+  }
+
+  async function feed() {
+    try {
+      const r = await fetch("./burns.json", { cache: "no-store" }).then(x => x.json()).catch(() => []);
+      if (!Array.isArray(r) || !r.length) return;
+      burns = r;
+      $("s-burns").textContent = r.length;
+      $("s-sol").textContent = r.reduce((a, b) => a + (b.sol || 0), 0).toFixed(3);
+      $("feed").innerHTML = r.slice(0, 12).map((b, i) =>
+        `<div class="b ${i === 0 ? "new" : ""}">
+           <span class="amt">${fmt(b.tokens)}</span>
+           <span class="w">burned for ${(b.sol || 0).toFixed(4)} SOL</span>
+           <a href="${sc("tx", b.burnSig)}" target="_blank" rel="noopener">verify ↗</a>
+         </div>`).join("");
+    } catch {}
+  }
+
+  await poll(); await feed();
+  setInterval(poll, 5000);
+  setInterval(feed, 15000);
+}
+</script>
+</body>
+</html>
