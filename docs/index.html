@@ -125,7 +125,7 @@ footer a{color:var(--hot)}
   <div class="stats">
     <div class="s"><b class="f" id="s-burned">—</b><s>tokens burned</s></div>
     <div class="s"><b id="s-burns">—</b><s>burns</s></div>
-    <div class="s"><b class="g" id="s-sol">—</b><s>SOL spent buying</s></div>
+    <div class="s"><b class="g" id="s-sol">—</b><s>recent burns</s></div>
     <div class="s"><b id="s-mint">—</b><s>mint authority</s></div>
   </div>
 </header>
@@ -229,25 +229,58 @@ if (!CFG.mint) {
     } catch (e) { /* keep the last good numbers on screen */ }
   }
 
+  // The burn feed is read straight off the chain — the furnace wallet's own
+  // transaction history. Nothing is served from a file, so there is no version
+  // of this page that can show burns that did not happen.
+  let seen = new Set();
   async function feed() {
+    if (!WALLET) return;
     try {
-      const r = await fetch("./burns.json", { cache: "no-store" }).then(x => x.json()).catch(() => []);
-      if (!Array.isArray(r) || !r.length) return;
-      burns = r;
-      $("s-burns").textContent = r.length;
-      $("s-sol").textContent = r.reduce((a, b) => a + (b.sol || 0), 0).toFixed(3);
-      $("feed").innerHTML = r.slice(0, 12).map((b, i) =>
-        `<div class="b ${i === 0 ? "new" : ""}">
+      const sigs = await conn.getSignaturesForAddress(WALLET, { limit: 25 });
+      const fresh = sigs.filter(s => !s.err).slice(0, 12);
+      const out = [];
+      for (const s of fresh) {
+        if (seen.has(s.signature)) { out.push(seen.get(s.signature)); continue; }
+        const tx = await conn.getParsedTransaction(s.signature, { maxSupportedTransactionVersion: 0 });
+        if (!tx) continue;
+        // find a burn instruction against our mint
+        const ixs = [
+          ...(tx.transaction.message.instructions || []),
+          ...((tx.meta?.innerInstructions || []).flatMap(i => i.instructions)),
+        ];
+        const burn = ixs.find(i =>
+          i.parsed && (i.parsed.type === "burn" || i.parsed.type === "burnChecked") &&
+          i.parsed.info?.mint === CFG.mint);
+        if (!burn) { seen.set(s.signature, null); continue; }
+        const raw = burn.parsed.info.amount ?? burn.parsed.info.tokenAmount?.amount ?? "0";
+        const dec = burn.parsed.info.tokenAmount?.decimals ?? CFG.decimals ?? 6;
+        const entry = {
+          sig: s.signature,
+          tokens: Number(raw) / 10 ** dec,
+          at: s.blockTime ? new Date(s.blockTime * 1000) : null,
+        };
+        seen.set(s.signature, entry);
+        out.push(entry);
+      }
+      const real = out.filter(Boolean);
+      if (!real.length) return;
+      burns = real;
+      $("s-burns").textContent = real.length >= 12 ? "12+" : real.length;
+      $("s-sol").textContent = "\u2014";
+      $("feed").innerHTML = real.slice(0, 12).map((b, i) => {
+        const ago = b.at ? Math.max(0, Math.round((Date.now() - b.at) / 60000)) : null;
+        return `<div class="b ${i === 0 ? "new" : ""}">
            <span class="amt">${fmt(b.tokens)}</span>
-           <span class="w">burned for ${(b.sol || 0).toFixed(4)} SOL</span>
-           <a href="${sc("tx", b.burnSig)}" target="_blank" rel="noopener">verify ↗</a>
-         </div>`).join("");
+           <span class="w">burned${ago !== null ? " · " + (ago < 1 ? "just now" : ago + "m ago") : ""}</span>
+           <a href="${sc("tx", b.sig)}" target="_blank" rel="noopener">verify \u2197</a>
+         </div>`;
+      }).join("");
     } catch {}
   }
 
   await poll(); await feed();
-  setInterval(poll, 5000);
-  setInterval(feed, 15000);
+  setInterval(poll, 2500);
+  setInterval(feed, 12000);
 }
 </script>
 </body>
