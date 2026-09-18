@@ -1,7 +1,8 @@
 {
   "rpc": "https://mainnet.helius-rpc.com/?api-key=14fe4366-ff04-452d-a864-040a0b82d050",
-  "mint": "",
-  "wallet": "",
+  "mint": "6ifiJ2BLXaQRF2V4EToFiA3ZSWym27aF6ggQuA8Zpump",
+  "wallet": "DjeCLWxRQVZSQPdc1ViPKjMi8ojJV2uvnffS453qG15v",
   "initialSupply": 1000000000,
-  "repo": "https://github.com/haydensouthall2021/furnace"
+  "repo": "https://github.com/haydensouthall2021/furnace",
+  "decimals": 6
 }
